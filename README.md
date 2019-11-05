@@ -19,12 +19,12 @@ This time, I used the following package.
 - `Town07_0.9.6.tar.gz`
 
 ### Build Docker image
-```
+```shell
 $ docker build -t carla:0.9.6 -f Dockerfile.kinetic .
 ```
 
 ### Create Docker container
-```
+```shell
 $ ./launch_container.sh
 ```
 
@@ -32,18 +32,18 @@ $ ./launch_container.sh
 ### Launch CARLA Simulator
 Please launch CARLA Simulator by the following command.
 
-```
+```shell
 $ cd CARLA_0.9.6
 $ ./CarlaUE4.sh -windowed -ResX=160 -ResY=120
 ```
 
 ### Set the configuration of CARLA Simulator
-```
+```shell
 $ cd CARLA_0.9.6/PythonAPI
 $ python util/config.py -m Town03 --fps 10
 ```
 
 ### Launch CARLA ROS bridge
-```
+```shell
 $ roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch vehicle_filter:='vehicle.toyota.prius*'
 ```
