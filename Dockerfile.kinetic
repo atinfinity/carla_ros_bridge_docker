@@ -62,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install \
         simple-pid \
         pygame \
-        networkx
+        networkx==2.2
 
 RUN rosdep init
 
