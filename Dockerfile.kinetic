@@ -59,6 +59,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN pip install \
+        simple-pid \
+        pygame \
+        networkx
+
 RUN rosdep init
 
 USER $USERNAME
@@ -75,8 +80,7 @@ RUN tar xfvz Town06_0.9.6.tar.gz -C /home/$USERNAME/CARLA_0.9.6/ && \
     rm /home/$USERNAME/Town06_0.9.6.tar.gz && \
     rm /home/$USERNAME/Town07_0.9.6.tar.gz
 
-RUN pip install --user simple-pid pygame
-RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_0.9.6/PythonAPI/carla/dist/carla-0.9.6-py2.7-linux-x86_64.egg" >> ~/.bashrc
+RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_0.9.6/PythonAPI/carla/dist/carla-0.9.6-py2.7-linux-x86_64.egg:~/CARLA_0.9.6/PythonAPI/carla" >> ~/.bashrc
 
 SHELL ["/bin/bash", "-c"]
 RUN mkdir -p ~/catkin_ws/src && \
