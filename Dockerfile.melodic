@@ -1,4 +1,4 @@
-FROM nvidia/cudagl:10.0-devel-ubuntu18.04
+FROM nvidia/cudagl:10.2-devel-ubuntu18.04
 
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
@@ -56,12 +56,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-melodic-pointcloud-to-laserscan \
         ros-melodic-velodyne-pointcloud \
         ros-melodic-grid-map-ros \
+        ros-melodic-ainstein-radar-msgs \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install \
         simple-pid \
+        numpy \
         pygame \
         networkx
 
@@ -70,25 +72,22 @@ RUN rosdep init
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN rosdep update
-COPY CARLA_0.9.6.tar.gz /home/$USERNAME/
-RUN mkdir CARLA_0.9.6 && \
-    tar xfvz CARLA_0.9.6.tar.gz -C CARLA_0.9.6 && \
-    rm /home/$USERNAME/CARLA_0.9.6.tar.gz
-COPY Town06_0.9.6.tar.gz /home/$USERNAME/
-COPY Town07_0.9.6.tar.gz /home/$USERNAME/
-RUN tar xfvz Town06_0.9.6.tar.gz -C /home/$USERNAME/CARLA_0.9.6/ && \
-    tar xfvz Town07_0.9.6.tar.gz -C /home/$USERNAME/CARLA_0.9.6/ && \
-    rm /home/$USERNAME/Town06_0.9.6.tar.gz && \
-    rm /home/$USERNAME/Town07_0.9.6.tar.gz
+COPY CARLA_0.9.8.tar.gz /home/$USERNAME/
+RUN mkdir CARLA_0.9.8 && \
+    tar xfvz CARLA_0.9.8.tar.gz -C CARLA_0.9.8 && \
+    rm /home/$USERNAME/CARLA_0.9.8.tar.gz
+COPY AdditionalMaps_0.9.8.tar.gz /home/$USERNAME/
+RUN tar xfvz AdditionalMaps_0.9.8.tar.gz -C /home/$USERNAME/CARLA_0.9.8/ && \
+    rm /home/$USERNAME/AdditionalMaps_0.9.8.tar.gz
 
-RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_0.9.6/PythonAPI/carla/dist/carla-0.9.6-py2.7-linux-x86_64.egg:~/CARLA_0.9.6/PythonAPI/carla" >> ~/.bashrc
+RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_0.9.8/PythonAPI/carla/dist/carla-0.9.8-py2.7-linux-x86_64.egg:~/CARLA_0.9.8/PythonAPI/carla" >> ~/.bashrc
 
 SHELL ["/bin/bash", "-c"]
 RUN mkdir -p ~/catkin_ws/src && \
     source /opt/ros/melodic/setup.bash && \
     catkin_init_workspace ~/catkin_ws/src && \
     cd ~/catkin_ws/src && \
-    git clone https://github.com/carla-simulator/ros-bridge.git && \
+    git clone --recursive https://github.com/carla-simulator/ros-bridge.git -b 0.9.8 && \
     sed -i -e 's/fixed_delta_seconds: 0.05/fixed_delta_seconds: 0.10/' ros-bridge/carla_ros_bridge/config/settings.yaml && \
     cd ~/catkin_ws && \
     catkin_make -DCMAKE_BUILD_TYPE=Release && \
