@@ -10,17 +10,16 @@ This is a Dockerfile to use [CARLA ROS bridge](https://github.com/carla-simulato
 
 ## Preparation
 ### Download CARLA Simulator
-Please download the CARLA Simulator and addtional map file from <https://github.com/carla-simulator/carla/releases/tag/0.9.6>.  
+Please download the CARLA Simulator and addtional map file from <https://github.com/carla-simulator/carla/releases/tag/0.9.8>.  
 And, please put CARLA Simulator in the same directory as the Dockerfile.  
 This time, I used the following package.
 
-- `CARLA_0.9.6.tar.gz`
-- `Town06_0.9.6.tar.gz`
-- `Town07_0.9.6.tar.gz`
+- `CARLA_0.9.8.tar.gz`
+- `AdditionalMaps_0.9.8.tar.gz`
 
 ### Build Docker image
 ```shell
-$ docker build -t carla:0.9.6 -f Dockerfile.melodic .
+$ docker build -t carla:0.9.8 -f Dockerfile.melodic .
 ```
 
 ### Create Docker container
@@ -33,13 +32,13 @@ $ ./launch_container.sh
 Please launch CARLA Simulator by the following command.
 
 ```shell
-$ cd CARLA_0.9.6
+$ cd CARLA_0.9.8
 $ ./CarlaUE4.sh -windowed -ResX=160 -ResY=120
 ```
 
 ### Set the configuration of CARLA Simulator
 ```shell
-$ cd CARLA_0.9.6/PythonAPI
+$ cd CARLA_0.9.8/PythonAPI
 $ python util/config.py -m Town03 --fps 10
 ```
 
