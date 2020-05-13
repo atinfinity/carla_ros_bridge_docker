@@ -57,7 +57,13 @@ $ cd CARLA_0.9.8
 $ ./CarlaUE4.sh -windowed -ResX=160 -ResY=120
 ```
 
-#### Launch CARLA ROS bridge
+#### Set the configuration of CARLA Simulator
+```shell
+$ cd CARLA_0.9.8/PythonAPI
+$ python util/config.py -m Town01 --fps 10
+```
+
+#### Launch CARLA AD Demo
 ```shell
 $ roslaunch carla_ad_demo carla_ad_demo_with_rviz.launch vehicle_filter:='vehicle.toyota.prius*'
 ```
