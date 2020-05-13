@@ -1,5 +1,6 @@
-FROM nvidia/cudagl:10.0-devel-ubuntu16.04
+FROM nvidia/cudagl:10.2-devel-ubuntu16.04
 
+ARG CARLA_VERSION=0.9.8
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
@@ -28,6 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         software-properties-common \
         xsel \
         xdg-user-dirs \
+        python-pip \
+        python-protobuf \
+        python-pexpect \
+        pcl-tools \
+        libpng16-16 \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -46,23 +52,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# ROS package
+# addtional ROS package
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpng16-16 \
-        python-pip \
-        python-protobuf \
-        pcl-tools \
         ros-kinetic-derived-object-msgs \
         ros-kinetic-ackermann-msgs \
-        ros-kinetic-pointcloud-to-laserscan \
-        ros-kinetic-velodyne-pointcloud \
-        ros-kinetic-grid-map-ros \
+        ros-kinetic-ainstein-radar-msgs \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install \
         simple-pid \
+        numpy \
         pygame \
         networkx==2.2
 
@@ -71,29 +72,32 @@ RUN rosdep init
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN rosdep update
-COPY CARLA_0.9.6.tar.gz /home/$USERNAME/
-RUN mkdir CARLA_0.9.6 && \
-    tar xfvz CARLA_0.9.6.tar.gz -C CARLA_0.9.6 && \
-    rm /home/$USERNAME/CARLA_0.9.6.tar.gz
-COPY Town06_0.9.6.tar.gz /home/$USERNAME/
-COPY Town07_0.9.6.tar.gz /home/$USERNAME/
-RUN tar xfvz Town06_0.9.6.tar.gz -C /home/$USERNAME/CARLA_0.9.6/ && \
-    tar xfvz Town07_0.9.6.tar.gz -C /home/$USERNAME/CARLA_0.9.6/ && \
-    rm /home/$USERNAME/Town06_0.9.6.tar.gz && \
-    rm /home/$USERNAME/Town07_0.9.6.tar.gz
+COPY CARLA_${CARLA_VERSION}.tar.gz /home/$USERNAME/
+RUN mkdir CARLA_${CARLA_VERSION} && \
+    tar xfvz CARLA_${CARLA_VERSION}.tar.gz -C CARLA_${CARLA_VERSION} && \
+    rm /home/$USERNAME/CARLA_${CARLA_VERSION}.tar.gz
+COPY AdditionalMaps_${CARLA_VERSION}.tar.gz /home/$USERNAME/
+RUN tar xfvz AdditionalMaps_${CARLA_VERSION}.tar.gz -C /home/$USERNAME/CARLA_${CARLA_VERSION}/ && \
+    rm /home/$USERNAME/AdditionalMaps_${CARLA_VERSION}.tar.gz
 
-RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_0.9.6/PythonAPI/carla/dist/carla-0.9.6-py2.7-linux-x86_64.egg:~/CARLA_0.9.6/PythonAPI/carla" >> ~/.bashrc
+RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_${CARLA_VERSION}/PythonAPI/carla/dist/carla-${CARLA_VERSION}-py2.7-linux-x86_64.egg:~/CARLA_${CARLA_VERSION}/PythonAPI/carla" >> ~/.bashrc
 
 SHELL ["/bin/bash", "-c"]
 RUN mkdir -p ~/catkin_ws/src && \
     source /opt/ros/kinetic/setup.bash && \
     catkin_init_workspace ~/catkin_ws/src && \
     cd ~/catkin_ws/src && \
-    git clone https://github.com/carla-simulator/ros-bridge.git && \
+    git clone --recursive https://github.com/carla-simulator/ros-bridge.git -b ${CARLA_VERSION} && \
     sed -i -e 's/fixed_delta_seconds: 0.05/fixed_delta_seconds: 0.10/' ros-bridge/carla_ros_bridge/config/settings.yaml && \
     cd ~/catkin_ws && \
     catkin_make -DCMAKE_BUILD_TYPE=Release && \
     source ~/catkin_ws/devel/setup.bash
 
+RUN cd /home/$USERNAME && \
+    git clone https://github.com/carla-simulator/scenario_runner.git -b v${CARLA_VERSION} && \
+    sed -i '/carla/d' scenario_runner/requirements.txt && \
+    sudo pip install -r scenario_runner/requirements.txt
+
 RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc && \
-    echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+    echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc && \
+    echo "export SCENARIO_RUNNER_PATH=/home/$USERNAME/scenario_runner" >> ~/.bashrc
