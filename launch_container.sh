@@ -16,5 +16,5 @@ docker run --runtime=nvidia --privileged --rm -it \
            --env=QT_X11_NO_MITSHM=1 \
            --net=host \
            -u "kinetic"  \
-           carla:0.9.6 \
+           carla:0.9.8 \
            bash
