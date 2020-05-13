@@ -28,7 +28,8 @@ $ ./launch_container.sh
 ```
 
 ## Usage
-### Launch CARLA Simulator
+### CARLA ROS bridge
+#### Launch CARLA Simulator
 Please launch CARLA Simulator by the following command.
 
 ```shell
@@ -36,13 +37,27 @@ $ cd CARLA_0.9.8
 $ ./CarlaUE4.sh -windowed -ResX=160 -ResY=120
 ```
 
-### Set the configuration of CARLA Simulator
+#### Set the configuration of CARLA Simulator
 ```shell
 $ cd CARLA_0.9.8/PythonAPI
 $ python util/config.py -m Town03 --fps 10
 ```
 
-### Launch CARLA ROS bridge
+#### Launch CARLA ROS bridge
 ```shell
 $ roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch vehicle_filter:='vehicle.toyota.prius*'
+```
+
+### CARLA AD Demo
+#### Launch CARLA Simulator
+Please launch CARLA Simulator by the following command.
+
+```shell
+$ cd CARLA_0.9.8
+$ ./CarlaUE4.sh -windowed -ResX=160 -ResY=120
+```
+
+#### Launch CARLA ROS bridge
+```shell
+$ roslaunch carla_ad_demo carla_ad_demo_with_rviz.launch vehicle_filter:='vehicle.toyota.prius*'
 ```
