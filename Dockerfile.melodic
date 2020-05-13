@@ -94,6 +94,7 @@ RUN mkdir -p ~/catkin_ws/src && \
 
 RUN cd /home/$USERNAME && \
     git clone https://github.com/carla-simulator/scenario_runner.git -b v${CARLA_VERSION} && \
+    sed -i '/carla/d' scenario_runner/requirements.txt && \
     sudo pip install -r scenario_runner/requirements.txt
 
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
