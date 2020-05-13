@@ -28,6 +28,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         software-properties-common \
         xsel \
         xdg-user-dirs \
+        python-pip \
+        python-protobuf \
+        python-pexpect \
+        pcl-tools \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -46,16 +50,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# ROS package
+# addtional ROS package
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python-pip \
-        python-protobuf \
-        pcl-tools \
         ros-melodic-derived-object-msgs \
         ros-melodic-ackermann-msgs \
-        ros-melodic-pointcloud-to-laserscan \
-        ros-melodic-velodyne-pointcloud \
-        ros-melodic-grid-map-ros \
         ros-melodic-ainstein-radar-msgs \
         && \
     apt-get clean && \
@@ -93,5 +91,10 @@ RUN mkdir -p ~/catkin_ws/src && \
     catkin_make -DCMAKE_BUILD_TYPE=Release && \
     source ~/catkin_ws/devel/setup.bash
 
+RUN cd /home/$USERNAME && \
+    git clone https://github.com/carla-simulator/scenario_runner.git -b v0.9.8 && \
+    sudo pip install -r scenario_runner/requirements.txt
+
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
-    echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+    echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc && \
+    echo "export SCENARIO_RUNNER_PATH=/home/$USERNAME/scenario_runner" >> ~/.bashrc
