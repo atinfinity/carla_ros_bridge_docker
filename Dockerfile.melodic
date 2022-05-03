@@ -1,8 +1,8 @@
 FROM nvidia/cudagl:10.2-devel-ubuntu18.04
 
 ARG CARLA_VERSION=0.9.8
-ARG GID
-ARG UID
+ARG GID=1000
+ARG UID=1000
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
 ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
@@ -16,10 +16,7 @@ RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
     usermod -aG sudo $USERNAME && \
     mkdir /etc/sudoers.d && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME && \
-    # Replace 1000 with your user/group id
-    usermod  --uid 1000 $USERNAME && \
-    groupmod --gid 1000 $USERNAME
+    chmod 0440 /etc/sudoers.d/$USERNAME
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
