@@ -1,4 +1,4 @@
-FROM nvidia/cudagl:10.2-devel-ubuntu18.04
+FROM nvidia/cudagl:11.4.2-devel-ubuntu18.04
 
 ARG CARLA_VERSION=0.9.8
 ARG GID=1000
@@ -8,7 +8,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPA
 
 # add new sudo user
 ENV USERNAME melodic
-ENV HOME /home/$USERNAME 
+ENV HOME /home/$USERNAME
 RUN groupadd -f -g ${GID} ${USERNAME}
 RUN useradd -m $USERNAME -u ${UID} -g ${GID} && \
     echo "$USERNAME:$USERNAME" | chpasswd && \
