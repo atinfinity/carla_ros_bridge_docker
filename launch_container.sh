@@ -16,5 +16,5 @@ docker run --gpus 0 --privileged --rm -it \
            --env=QT_X11_NO_MITSHM=1 \
            --net=host \
            -u "melodic"  \
-           carla:0.9.8 \
+           carla:0.9.11 \
            bash
