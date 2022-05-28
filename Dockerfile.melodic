@@ -1,6 +1,6 @@
 FROM nvidia/cudagl:11.4.2-devel-ubuntu18.04
 
-ARG CARLA_VERSION=0.9.8
+ARG CARLA_VERSION=0.9.11
 ARG GID=1000
 ARG UID=1000
 ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
@@ -33,9 +33,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python-protobuf \
     python-pexpect \
     pcl-tools \
+    libomp5 \
+    vulkan-utils \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Vulkan
+RUN mkdir -p /etc/vulkan/icd.d && \
+    echo '{ "file_format_version" : "1.0.0", "ICD" : { "library_path" : "libGLX_nvidia.so.0", "api_version" : "1.1.99" } }' > /etc/vulkan/icd.d/nvidia_icd.json
+RUN echo > /etc/ld.so.preload
 
 # ROS Melodic
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -51,50 +58,50 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# addtional ROS package
+# CARLA Simulator
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1AF1527DE64CB8D9
+RUN add-apt-repository "deb [arch=amd64] http://dist.carla.org/carla $(lsb_release -sc) main"
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-melodic-derived-object-msgs \
-    ros-melodic-ackermann-msgs \
-    ros-melodic-ainstein-radar-msgs \
+    carla-simulator=${CARLA_VERSION} \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# addtional ROS package
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-melodic-derived-object-msgs \
+    ros-melodic-ackermann-msgs \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# addtional python package
 RUN pip install \
-    simple-pid \
-    numpy \
-    pygame \
-    networkx
+    transforms3d \
+    networkx \
+    pygame==1.9.6
 
 RUN rosdep init
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN rosdep update
-COPY CARLA_${CARLA_VERSION}.tar.gz /home/$USERNAME/
-RUN mkdir CARLA_${CARLA_VERSION} && \
-    tar xfvz CARLA_${CARLA_VERSION}.tar.gz -C CARLA_${CARLA_VERSION} && \
-    rm /home/$USERNAME/CARLA_${CARLA_VERSION}.tar.gz
-COPY AdditionalMaps_${CARLA_VERSION}.tar.gz /home/$USERNAME/
-RUN tar xfvz AdditionalMaps_${CARLA_VERSION}.tar.gz -C /home/$USERNAME/CARLA_${CARLA_VERSION}/ && \
-    rm /home/$USERNAME/AdditionalMaps_${CARLA_VERSION}.tar.gz
-
-RUN echo "export PYTHONPATH=$PYTHONPATH:~/CARLA_${CARLA_VERSION}/PythonAPI/carla/dist/carla-${CARLA_VERSION}-py2.7-linux-x86_64.egg:~/CARLA_${CARLA_VERSION}/PythonAPI/carla" >> ~/.bashrc
 
 SHELL ["/bin/bash", "-c"]
+
+# build CARLA ROS bridge
 RUN mkdir -p ~/catkin_ws/src && \
     source /opt/ros/melodic/setup.bash && \
     catkin_init_workspace ~/catkin_ws/src && \
     cd ~/catkin_ws/src && \
     git clone --recursive https://github.com/carla-simulator/ros-bridge.git -b ${CARLA_VERSION} && \
-    sed -i -e 's/fixed_delta_seconds: 0.05/fixed_delta_seconds: 0.10/' ros-bridge/carla_ros_bridge/config/settings.yaml && \
     cd ~/catkin_ws && \
     catkin_make -DCMAKE_BUILD_TYPE=Release && \
     source ~/catkin_ws/devel/setup.bash
 
+# build CARLA ScenarioRunner
 RUN cd /home/$USERNAME && \
     git clone https://github.com/carla-simulator/scenario_runner.git -b v${CARLA_VERSION} && \
-    sed -i '/carla/d' scenario_runner/requirements.txt && \
     sudo pip install -r scenario_runner/requirements.txt
 
 RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc && \
