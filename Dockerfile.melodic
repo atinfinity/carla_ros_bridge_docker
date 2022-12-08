@@ -77,8 +77,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # addtional python package
 RUN pip install \
-    transforms3d \
-    networkx \
+    transforms3d==0.3.1 \
+    networkx==2.2 \
     pygame==1.9.6
 
 RUN rosdep init
